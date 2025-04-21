@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import './index.css';
-import { useStore, sendFormData } from './useStore.js';
-import { emailRegex, passwordRegex } from './checkValidation.js';
+import { useStore } from './useStore.js';
+import { useValidation } from './checkValidation.js';
 
 export const App = () => {
 	const { getState, updateState } = useStore();
@@ -11,39 +11,8 @@ export const App = () => {
 
 	const { email, password, confirmPass } = getState();
 
-	const onChange = ({ target }) => updateState(target.name, target.value);
-
-	const onEmailBlur = ({ target }) => {
-		!emailRegex.test(target.value)
-			? setFormError(
-					`Неверный email адрес. Проверьте логин перед символом @ и домен почтового ящика!`,
-				)
-			: setFormError('');
-	};
-
-	const onPassBlur = ({ target }) => {
-		!passwordRegex.test(target.value)
-			? setFormError(
-					'Пароль должен быть не менее 8 символов, состоять из строчной, заглавной буквы латинского алфавита, цифры и спецсимвола!',
-				)
-			: setFormError('');
-	};
-
-	const onConfirmPassChange = ({ target }) => {
-		setFormError('');
-		target.value === password
-			? submitButtonRef.current.focus()
-			: updateState(target.name, target.value);
-	};
-
-	const onConfirmPassBlur = ({ target }) => {
-		password !== target.value ? setFormError(`Пароли не совпадают!`) : setFormError('');
-	};
-
-	const onSubmit = (event) => {
-		event.preventDefault();
-		sendFormData(getState());
-	};
+	const { onChange, onEmailBlur, onPassBlur, onConfirmPassChange, onConfirmPassBlur, onSubmit } =
+		useValidation({ updateState, setFormError, submitButtonRef, password, getState });
 
 	return (
 		<div className="container">
