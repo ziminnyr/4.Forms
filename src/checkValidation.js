@@ -9,6 +9,7 @@ export const useValidation = ({
 	submitButtonRef,
 	password,
 	getState,
+	formError,
 }) => {
 	const onChange = ({ target }) => updateState(target.name, target.value);
 
@@ -31,8 +32,11 @@ export const useValidation = ({
 	const onConfirmPassChange = ({ target }) => {
 		setFormError('');
 		updateState(target.name, target.value);
-		if (target.value === password) {
+		if (target.value === password && formError) {
+			submitButtonRef.current.disabled = !submitButtonRef.current.disabled;
 			submitButtonRef.current.focus();
+		} else {
+			setFormError(`Пароли не совпадают!`);
 		}
 	};
 

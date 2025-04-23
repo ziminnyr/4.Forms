@@ -8,11 +8,17 @@ export const App = () => {
 	const [formError, setFormError] = useState('');
 
 	const submitButtonRef = useRef(null);
-
 	const { email, password, confirmPass } = getState();
 
 	const { onChange, onEmailBlur, onPassBlur, onConfirmPassChange, onConfirmPassBlur, onSubmit } =
-		useValidation({ updateState, setFormError, submitButtonRef, password, getState });
+		useValidation({
+			updateState,
+			setFormError,
+			submitButtonRef,
+			password,
+			getState,
+			formError,
+		});
 
 	return (
 		<div className="container">
