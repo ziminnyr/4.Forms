@@ -1,66 +1,72 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import './index.css';
-import { useStore } from './useStore.js';
-import { useValidation } from './checkValidation.js';
+import { sendFormData, initialState, fieldsScheme } from './checkValidation.js';
+
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { DevTool } from '@hookform/devtools';
 
 export const App = () => {
-	const { getState, updateState } = useStore();
-	const [formError, setFormError] = useState('');
-
 	const submitButtonRef = useRef(null);
-	const { email, password, confirmPass } = getState();
 
-	const { onChange, onEmailBlur, onPassBlur, onConfirmPassChange, onConfirmPassBlur, onSubmit } =
-		useValidation({
-			updateState,
-			setFormError,
-			submitButtonRef,
-			password,
-			getState,
-			formError,
-		});
+	const onConfirmPassChange = (event) => {
+		const value = event.target.value;
+		const password = watch('password');
+		// Если пароли совпадают и нет ошибок - фокус на кнопку
+		if (value === password && !errors.confirmPass && !errors.password) {
+			submitButtonRef.current?.focus();
+		}
+	};
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+		control,
+		watch,
+	} = useForm({
+		defaultValues: { initialState },
+		resolver: yupResolver(fieldsScheme),
+	});
+
+	const emailError = errors.email?.message;
+	const passwordError = errors.password?.message;
+	const confirmPassError = errors.confirmPass?.message;
 
 	return (
 		<div className="container">
-			<form onSubmit={onSubmit}>
+			<form onSubmit={handleSubmit(sendFormData)}>
 				<p className="header">Форма регистрации</p>
 
 				<label htmlFor="email">Email:</label>
-				<input
-					id="email"
-					name="email"
-					type="email"
-					placeholder="Ваш email"
-					value={email}
-					onChange={onChange}
-					onBlur={onEmailBlur}
-				/>
+				<input id="email" type="email" placeholder="Ваш email" {...register('email')} />
+				{emailError && <div className="errormsg">{emailError}</div>}
 				<label htmlFor="password">Пароль:</label>
 				<input
 					id="password"
-					name="password"
 					type="password"
 					placeholder="Пароль"
-					value={password}
-					onChange={onChange}
-					onBlur={onPassBlur}
+					{...register('password')}
 				/>
+				{passwordError && <div className="errormsg">{passwordError}</div>}
 				<label htmlFor="password2">Повторите пароль:</label>
 				<input
 					id="confirmPass"
-					name="confirmPass"
 					type="password"
 					placeholder="Повторите пароль"
-					value={confirmPass}
-					onChange={onConfirmPassChange}
-					onBlur={onConfirmPassBlur}
+					{...register('confirmPass', { onChange: onConfirmPassChange })}
 				/>
+				{confirmPassError && <div className="errormsg">{confirmPassError}</div>}
 
-				{formError && <div className="errormsg">{formError}</div>}
-				<button ref={submitButtonRef} type="submit" disabled={!!formError}>
+				<button
+					ref={submitButtonRef}
+					type="submit"
+					disabled={!!emailError || !!passwordError || !!confirmPassError}
+				>
 					Зарегистрироваться
 				</button>
 			</form>
+			<DevTool control={control} /> {/* set up the dev tool */}
 		</div>
 	);
 };

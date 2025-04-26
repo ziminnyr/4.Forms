@@ -1,53 +1,35 @@
-import { sendFormData } from './useStore';
+import * as yup from 'yup';
 
-export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-export const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()]).{8,}$/;
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()]).{8,}$/;
 
-export const useValidation = ({
-	updateState,
-	setFormError,
-	submitButtonRef,
-	password,
-	getState,
-	formError,
-}) => {
-	const onChange = ({ target }) => updateState(target.name, target.value);
-
-	const onEmailBlur = ({ target }) => {
-		!emailRegex.test(target.value)
-			? setFormError(
-					`Неверный email адрес. Проверьте логин перед символом @ и домен почтового ящика!`,
-				)
-			: setFormError('');
-	};
-
-	const onPassBlur = ({ target }) => {
-		!passwordRegex.test(target.value)
-			? setFormError(
-					'Пароль должен быть не менее 8 символов, состоять из строчной, заглавной буквы латинского алфавита, цифры и спецсимвола!',
-				)
-			: setFormError('');
-	};
-
-	const onConfirmPassChange = ({ target }) => {
-		setFormError('');
-		updateState(target.name, target.value);
-		if (target.value === password && formError) {
-			submitButtonRef.current.disabled = !submitButtonRef.current.disabled;
-			submitButtonRef.current.focus();
-		} else {
-			setFormError(`Пароли не совпадают!`);
-		}
-	};
-
-	const onConfirmPassBlur = ({ target }) => {
-		password !== target.value ? setFormError(`Пароли не совпадают!`) : setFormError('');
-	};
-
-	const onSubmit = (event) => {
-		event.preventDefault();
-		sendFormData(getState());
-	};
-
-	return { onChange, onEmailBlur, onPassBlur, onConfirmPassChange, onConfirmPassBlur, onSubmit };
+export const initialState = {
+	email: '',
+	password: '',
+	confirmPass: '',
 };
+
+export const sendFormData = (formData) => {
+	console.log(formData);
+};
+
+export const fieldsScheme = yup.object().shape({
+	email: yup.string().required('Введите email!').matches(emailRegex, 'Неверный формат email!'),
+
+	password: yup
+		.string()
+		.required('Введите пароль!')
+		.min(8, 'Пароль должен быть не менее 8 символов!')
+		.matches(
+			passwordRegex,
+			'Пароль должен состоять из строчной, заглавной буквы латинского алфавита, цифры и спецсимвола!',
+		),
+
+	confirmPass: yup
+		.string()
+		.required('Подтвердите пароль!')
+		.oneOf(
+			[yup.ref('password')], // Сравниваем с полем `password`
+			'Пароли не совпадают!',
+		),
+});
